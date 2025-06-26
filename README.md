@@ -2,6 +2,9 @@
 
 A Ruby on Rails application for creating, managing, and executing prompts with language models (LLMs). Built with modern Rails conventions, Hotwire for dynamic interactions, and Tailwind CSS for styling.
 
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/aGvkDy?referralCode=jTB7Y8)
+
 ## Features
 
 - **Prompt Management**: Create, edit, and organize prompts with variable support
