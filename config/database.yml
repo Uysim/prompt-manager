@@ -80,6 +80,4 @@ test:
 #
 production:
   <<: *default
-  database: prompt_manager_production
-  username: prompt_manager
-  password: <%= ENV["PROMPT_MANAGER_DATABASE_PASSWORD"] %>
+  url: <%= ENV["DATABASE_URL"] %>
