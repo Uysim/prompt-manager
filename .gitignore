@@ -10,6 +10,7 @@
 # Ignore all environment files (except templates).
 /.env*
 !/.env*.erb
+!.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -35,3 +36,5 @@
 /config/master.key
 
 memory-bank/
+/app/assets/builds/*
+!/app/assets/builds/.keep

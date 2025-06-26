@@ -1,0 +1,29 @@
+class LlmService
+  attr_reader :provider, :model
+
+  def initialize(provider: "anthropic", model: "claude-3-5-sonnet-20241022")
+    @provider = provider
+    @model = model
+  end
+
+  def generate(prompt_content)
+    raise NotImplementedError, "Subclasses must implement generate method"
+  end
+
+  protected
+
+  def api_key
+    case provider
+    when "anthropic"
+      ENV["ANTHROPIC_API_KEY"]
+    when "openai"
+      ENV["OPENAI_API_KEY"]
+    else
+      raise ArgumentError, "Unsupported provider: #{provider}"
+    end
+  end
+
+  def api_key_present?
+    api_key.present?
+  end
+end

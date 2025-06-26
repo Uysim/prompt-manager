@@ -9,6 +9,17 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
+  # Prompt management routes
+  resources :prompts do
+    # Generate text from a prompt
+    post :generate, on: :member
+    # Show generation history for a prompt
+    get :generations, on: :member
+  end
+
+  # Generation routes
+  resources :generations, only: [ :show, :index, :destroy ]
+
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "prompts#index"
 end
