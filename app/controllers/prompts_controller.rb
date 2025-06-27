@@ -40,6 +40,7 @@ class PromptsController < ApplicationController
 
   def generate
     input_variables = params[:input_variables] || {}
+    selected_model = params[:model] || "claude-sonnet-4-20250514"
 
     # Check if all required variables are provided
     missing_vars = @prompt.missing_variables(input_variables)
@@ -51,8 +52,8 @@ class PromptsController < ApplicationController
     # Process the prompt with variables
     processed_content = @prompt.process_content(input_variables)
 
-    # Generate text using LLM
-    llm_service = AnthropicService.new
+    # Generate text using LLM with selected model
+    llm_service = AnthropicService.new(model: selected_model)
     result = llm_service.generate(processed_content)
 
     if result[:success]
@@ -61,7 +62,7 @@ class PromptsController < ApplicationController
         input_data: input_variables,
         generated_text: result[:text],
         llm_provider: "anthropic",
-        llm_model: llm_service.model
+        llm_model: selected_model
       )
 
       redirect_to generation, notice: "Text generated successfully!"

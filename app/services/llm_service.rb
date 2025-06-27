@@ -1,7 +1,7 @@
 class LlmService
   attr_reader :provider, :model
 
-  def initialize(provider: "anthropic", model: "claude-3-5-sonnet-20241022")
+  def initialize(provider: "anthropic", model: "claude-sonnet-4-20250514")
     @provider = provider
     @model = model
   end

@@ -55,7 +55,7 @@
         <h3 class="text-sm font-medium text-blue-900 mb-2">Generation Details</h3>
         <div class="space-y-1 text-sm text-blue-800">
           <div><strong>Provider:</strong> <%= @generation.llm_provider.humanize %></div>
-          <div><strong>Model:</strong> <%= @generation.llm_model %></div>
+          <div><strong>Model:</strong> <%= model_display_name(@generation.llm_model) %></div>
         </div>
       </div>
     </div>

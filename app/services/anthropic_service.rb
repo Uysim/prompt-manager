@@ -2,7 +2,7 @@ require "net/http"
 require "json"
 
 class AnthropicService < LlmService
-  def initialize(model: "claude-3-5-sonnet-20241022")
+  def initialize(model: "claude-sonnet-4-20250514")
     super(provider: "anthropic", model: model)
   end
 
