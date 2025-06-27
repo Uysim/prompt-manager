@@ -12,6 +12,7 @@ A Ruby on Rails application for creating, managing, and executing prompts with l
 - **Generation History**: Track and view all prompt executions and results
 - **Modern UI**: Responsive interface built with Hotwire and Tailwind CSS
 - **Docker Support**: Containerized deployment ready
+- **Basic Authentication**: HTTP Basic Auth protection for the entire application
 
 ## Technology Stack
 
@@ -20,6 +21,7 @@ A Ruby on Rails application for creating, managing, and executing prompts with l
 - **Frontend**: Hotwire (Turbo + Stimulus), Tailwind CSS
 - **JavaScript**: Importmap-based (no bundler required)
 - **Deployment**: Docker containerization
+- **Authentication**: HTTP Basic Authentication
 
 ## Prerequisites
 
@@ -38,8 +40,17 @@ bundle install
 
 ### 2. Environment configuration
 
-Copy the .env.example to .env file and configure your API keys
+Create a `.env` file in the root directory with the following variables:
 
+```bash
+# Basic Authentication Credentials
+BASIC_AUTH_USERNAME=admin
+BASIC_AUTH_PASSWORD=your_secure_password_here
+
+# Add your other API keys here
+```
+
+**Important**: Replace `your_secure_password_here` with a strong password. The `.env` file is already in `.gitignore` to keep your credentials secure.
 
 ### 3. Database setup
 
@@ -58,6 +69,20 @@ bin/dev
 ```
 
 The application will be available at `http://localhost:3000`
+
+## Basic Authentication
+
+This application is protected with HTTP Basic Authentication. When you first visit the application, you'll be prompted for credentials:
+
+- **Username**: Set via `BASIC_AUTH_USERNAME` environment variable (defaults to "admin")
+- **Password**: Set via `BASIC_AUTH_PASSWORD` environment variable (defaults to "password")
+
+To change the credentials:
+
+1. Update the values in your `.env` file
+2. Restart the Rails server
+
+For production deployment, make sure to set strong, unique credentials using environment variables.
 
 ## Development
 
