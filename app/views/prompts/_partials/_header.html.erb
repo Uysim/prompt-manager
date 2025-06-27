@@ -1,0 +1,13 @@
+<!-- Header -->
+<div class="flex justify-between items-start">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-900"><%= @prompt.title %></h1>
+    <% if @prompt.description.present? %>
+      <p class="mt-2 text-gray-600"><%= @prompt.description %></p>
+    <% end %>
+  </div>
+  <div class="flex space-x-3">
+    <%= link_to "Edit", edit_prompt_path(@prompt), class: "bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+    <%= link_to "Back", prompts_path, class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium" %>
+  </div>
+</div> 

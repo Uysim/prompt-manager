@@ -1,0 +1,21 @@
+<!-- Prompt Content -->
+<div class="bg-white shadow rounded-lg p-6">
+  <h2 class="text-lg font-medium text-gray-900 mb-4">Prompt Content</h2>
+  <div class="bg-gray-50 rounded-md p-4">
+    <pre class="whitespace-pre-wrap text-sm text-gray-800"><%= @prompt.content %></pre>
+  </div>
+  
+  <% variables = @prompt.extract_variables %>
+  <% if variables.any? %>
+    <div class="mt-4">
+      <h3 class="text-sm font-medium text-gray-900 mb-2">Variables</h3>
+      <div class="flex flex-wrap gap-2">
+        <% variables.each do |var| %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {{<%= var %>}}
+          </span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div> 
