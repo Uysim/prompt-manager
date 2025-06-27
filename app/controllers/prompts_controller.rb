@@ -39,33 +39,14 @@ class PromptsController < ApplicationController
   end
 
   def generate
-    input_variables = params[:input_variables] || {}
-    selected_model = params[:model] || "claude-sonnet-4-20250514"
-
-    # Check if all required variables are provided
-    missing_vars = @prompt.missing_variables(input_variables)
-    if missing_vars.any?
-      redirect_to @prompt, alert: "Missing required variables: #{missing_vars.join(', ')}"
-      return
-    end
-
-    # Process the prompt with variables
-    processed_content = @prompt.process_content(input_variables)
-
-    # Generate text using LLM with selected model
-    llm_service = AnthropicService.new(model: selected_model)
-    result = llm_service.generate(processed_content)
+    result = GenerationService.new(
+      @prompt,
+      params[:input_variables] || {},
+      params[:model]
+    ).call
 
     if result[:success]
-      # Save the generation
-      generation = @prompt.generations.create!(
-        input_data: input_variables,
-        generated_text: result[:text],
-        llm_provider: "anthropic",
-        llm_model: selected_model
-      )
-
-      redirect_to generation, notice: "Text generated successfully!"
+      redirect_to result[:generation], notice: "Text generated successfully!"
     else
       redirect_to @prompt, alert: "Generation failed: #{result[:error]}"
     end
