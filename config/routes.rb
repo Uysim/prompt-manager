@@ -15,6 +15,8 @@ Rails.application.routes.draw do
     post :generate, on: :member
     # Show generation history for a prompt
     get :generations, on: :member
+    # Nested generations
+    resources :generations, only: [ :create, :show, :destroy ]
   end
 
   # Generation routes

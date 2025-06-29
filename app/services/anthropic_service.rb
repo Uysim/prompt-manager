@@ -15,6 +15,7 @@ class AnthropicService < LlmService
     request["x-api-key"] = api_key
     request["anthropic-version"] = "2023-06-01"
 
+    puts "Generating with model: #{model}"
     request.body = {
       model: model,
       max_tokens: 4000,
