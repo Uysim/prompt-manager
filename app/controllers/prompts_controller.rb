@@ -39,14 +39,17 @@ class PromptsController < ApplicationController
   end
 
   def generate
+    use_sequential_thinking = params[:use_sequential_thinking] == "true"
+
     result = GenerationService.new(
       @prompt,
       params[:input_variables] || {},
-      params[:model]
+      params[:model],
+      use_sequential_thinking
     ).call
 
     if result[:success]
-      redirect_to result[:generation], notice: "Text generated successfully!"
+      redirect_to prompt_generation_path(@prompt, result[:generation]), notice: "Text generated successfully!"
     else
       redirect_to @prompt, alert: "Generation failed: #{result[:error]}"
     end

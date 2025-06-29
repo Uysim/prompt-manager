@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_26_175906) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_28_180852) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -23,7 +23,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_26_175906) do
     t.string "llm_model", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "metadata", default: {}
     t.index ["created_at"], name: "index_generations_on_created_at"
+    t.index ["metadata"], name: "index_generations_on_metadata", using: :gin
     t.index ["prompt_id", "created_at"], name: "index_generations_on_prompt_id_and_created_at"
     t.index ["prompt_id"], name: "index_generations_on_prompt_id"
   end
