@@ -55,8 +55,8 @@
     </div>
   </div>
 
-  <%# <!-- Thinking Process -->
-  <%= render 'thinking_process', thinking_process: thinking_process if thinking_process.present? %> %>
+  <!-- Thinking Process -->
+  <%= render 'thinking_process', thinking_process: thinking_process if thinking_process.present? %>
 
   <!-- Enhanced Prompt (for Sequential Thinking) -->
   <% if generation.metadata&.dig('enhanced_prompt').present? %>
