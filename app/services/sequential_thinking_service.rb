@@ -88,7 +88,7 @@ class SequentialThinkingService
     thinking_summary = thoughts.map { |t| "Step #{t[:number]}: #{t[:content]}" }.join("\n")
 
     final_prompt = <<~PROMPT
-      Based on your step-by-step thinking process below, provide a comprehensive final answer to the original problem.
+      Based on your step-by-step thinking process below, provide ONLY the final answer to the original problem. Do not include any thinking process, explanations, or meta-commentary.
 
       Original Problem: #{problem_description}
 
@@ -96,11 +96,11 @@ class SequentialThinkingService
       #{thinking_summary}
 
       Instructions:
-      1. Synthesize all the insights from your thinking process
-      2. Provide a clear, comprehensive final answer
-      3. Address all aspects of the original problem
-      4. Write in a professional, well-structured manner
-      5. Include relevant details and examples where appropriate
+      1. Provide ONLY the final answer
+      2. Do not include phrases like "Based on my analysis" or "Therefore"
+      3. Do not explain your reasoning
+      4. Give a direct, actionable response
+      5. Be concise and to the point
 
       Final Answer:
     PROMPT
