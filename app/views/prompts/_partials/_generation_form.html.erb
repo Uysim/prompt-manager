@@ -11,7 +11,7 @@
           AI Model
         </label>
         <%= form.select :model, 
-            options_for_select(AnthropicService.available_models.to_a, AnthropicService.default_model),
+            options_for_select(AnthropicService.available_models.map { |k, v| [v, k] }, AnthropicService.default_model),
             {},
             { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
         <p class="mt-1 text-xs text-gray-500">
@@ -59,7 +59,7 @@
           AI Model
         </label>
         <%= form.select :model, 
-            options_for_select(AnthropicService.available_models.to_a, AnthropicService.default_model),
+            options_for_select(AnthropicService.available_models.map { |k, v| [v, k] }, AnthropicService.default_model),
             {},
             { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
         <p class="mt-1 text-xs text-gray-500">
