@@ -2,7 +2,20 @@ require "net/http"
 require "json"
 
 class AnthropicService < LlmService
-  def initialize(model: "claude-sonnet-4-20250514")
+  def self.available_models
+    {
+      "claude-sonnet-4-20250514" => "Claude Sonnet 4 (Recommended)",
+      "claude-opus-4-20250514" => "Claude Opus 4 (Most Capable)",
+      "claude-3-7-sonnet-20250219" => "Claude Sonnet 3.7 (Fast)",
+      "claude-3-5-haiku-20241022" => "Claude Haiku 3.5 (Fastest)"
+    }
+  end
+
+  def self.default_model
+    "claude-sonnet-4-20250514"
+  end
+
+  def initialize(model: self.class.default_model)
     super(provider: "anthropic", model: model)
   end
 

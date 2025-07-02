@@ -15,7 +15,7 @@ class GenerationsController < ApplicationController
     service = GenerationService.new(
       @prompt,
       generation_params[:input_variables],
-      generation_params[:model] || "claude-sonnet-4-20250514",
+      generation_params[:model] || AnthropicService.default_model,
       use_sequential_thinking
     )
 
