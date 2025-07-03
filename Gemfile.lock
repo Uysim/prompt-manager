@@ -72,6 +72,8 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+    anthropic (1.1.1)
+      connection_pool
     ast (2.4.3)
     base64 (0.3.0)
     benchmark (0.4.1)
@@ -287,6 +289,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  anthropic (~> 1.1)
   bootsnap
   brakeman
   debug
@@ -294,7 +297,7 @@ DEPENDENCIES
   error_highlight (>= 0.4.0)
   importmap-rails
   jbuilder
-  pg (~> 1.1)
+  pg (~> 1.5.9)
   pry
   puma (>= 5.0)
   rails (~> 7.2.2, >= 7.2.2.1)
@@ -305,6 +308,9 @@ DEPENDENCIES
   turbo-rails
   tzinfo-data
   web-console
+
+RUBY VERSION
+   ruby 3.4.4p34
 
 BUNDLED WITH
    2.4.19

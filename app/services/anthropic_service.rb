@@ -1,5 +1,4 @@
-require "net/http"
-require "json"
+require "anthropic"
 
 class AnthropicService < LlmService
   def self.available_models
@@ -17,47 +16,36 @@ class AnthropicService < LlmService
 
   def initialize(model: self.class.default_model)
     super(provider: "anthropic", model: model)
+    @client = Anthropic::Client.new(api_key: api_key)
   end
 
   def generate(prompt_content)
     return { error: "API key not configured" } unless api_key_present?
 
-    uri = URI("https://api.anthropic.com/v1/messages")
-    request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request["x-api-key"] = api_key
-    request["anthropic-version"] = "2023-06-01"
+    begin
+      response = @client.messages.create(
+        model: model,
+        max_tokens: 4000,
+        messages: [
+          {
+            role: "user",
+            content: prompt_content
+          }
+        ]
+      )
 
-    puts "Generating with model: #{model}"
-    request.body = {
-      model: model,
-      max_tokens: 4000,
-      messages: [
-        {
-          role: "user",
-          content: prompt_content
-        }
-      ]
-    }.to_json
-
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-      http.request(request)
-    end
-
-    if response.is_a?(Net::HTTPSuccess)
-      data = JSON.parse(response.body)
       {
         success: true,
-        text: data.dig("content", 0, "text"),
-        usage: data["usage"]
+        text: response.content.first.text,
+        usage: response.usage&.to_h
       }
-    else
+    rescue Anthropic::Errors::APIError => e
       {
-        error: "API request failed: #{response.code} - #{response.body}",
-        status: response.code
+        error: "API request failed: #{e.message}",
+        status: e.status
       }
+    rescue => e
+      { error: "Request failed: #{e.message}" }
     end
-  rescue => e
-    { error: "Request failed: #{e.message}" }
   end
 end
