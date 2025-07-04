@@ -11,10 +11,11 @@ Rails.application.routes.draw do
 
   # Prompt management routes
   resources :prompts do
-    # Generate text from a prompt
-    post :generate, on: :member
-    # Show generation history for a prompt
-    get :generations, on: :member
+    member do
+      post :generate
+      delete :remove_file
+      get :generations
+    end
     # Nested generations
     resources :generations, only: [ :create, :show, :destroy ]
   end

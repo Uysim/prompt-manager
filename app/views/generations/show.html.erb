@@ -85,7 +85,7 @@
 
 <script>
 function copyToClipboard() {
-  const text = `<%= j @generation.generated_text %>`;
+  const text = `<%= raw @generation.generated_text %>`;
   navigator.clipboard.writeText(text).then(function() {
     // You could add a toast notification here
     console.log('Text copied to clipboard');

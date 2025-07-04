@@ -1,11 +1,11 @@
 <div class="max-w-2xl mx-auto">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-900">Edit Prompt</h1>
-    <%= link_to "Back", prompt_path(@prompt), class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium" %>
+    <%= link_to "Back", @prompt, class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium" %>
   </div>
 
   <div class="bg-white shadow rounded-lg p-6">
-    <%= form_with model: @prompt, local: true, class: "space-y-6" do |form| %>
+    <%= form_with model: @prompt, local: true, class: "space-y-6", multipart: true, data: { controller: "file-upload" } do |form| %>
       <% if @prompt.errors.any? %>
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
           <h2 class="text-sm font-medium mb-2">
@@ -43,8 +43,79 @@
             placeholder: "Write your prompt here. Use {{variable_name}} for variables." %>
       </div>
 
+      <!-- Existing files -->
+      <% if @prompt.files.attached? %>
+        <div>
+          <h4 class="text-sm font-medium text-gray-700 mb-3">Current Files:</h4>
+          <div class="space-y-2">
+            <% @prompt.files.each do |file| %>
+              <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-3">
+                  <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <div>
+                    <p class="text-sm font-medium text-gray-700"><%= file.filename %></p>
+                    <p class="text-xs text-gray-500"><%= number_to_human_size(file.byte_size) %></p>
+                  </div>
+                </div>
+                <%= link_to "Remove", remove_file_prompt_path(@prompt, file_id: file.id), 
+                    method: :delete,
+                    class: "text-red-600 hover:text-red-800 text-sm font-medium p-1 hover:bg-red-50 rounded transition-colors duration-200",
+                    data: { confirm: "Are you sure you want to remove this file?" } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :files, "Add More Files", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <div class="text-sm text-gray-500 mb-3">
+          Supported formats: PDF, DOC, DOCX, TXT, CSV, JPEG, PNG, GIF (max 10MB each)
+        </div>
+        
+        <div class="relative">
+          <div class="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors duration-200 bg-gray-50 hover:bg-blue-50">
+            <div class="space-y-4 text-center">
+              <div class="flex justify-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400 group-hover:text-blue-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <div class="flex flex-col items-center space-y-2">
+                <label for="prompt_files" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-4 py-2 border border-blue-300 hover:border-blue-400 transition-colors duration-200">
+                  <span>Choose files</span>
+                  <%= form.file_field :files, multiple: true, 
+                      class: "sr-only",
+                      accept: ".pdf,.doc,.docx,.txt,.csv,.jpg,.jpeg,.png,.gif",
+                      data: { 
+                        action: "change->file-upload#handleFiles",
+                        "file-upload-target": "input"
+                      } %>
+                </label>
+                <p class="text-sm text-gray-600">or drag and drop files here</p>
+              </div>
+              <div class="text-xs text-gray-500 space-y-1">
+                <p>PDF, DOC, DOCX, TXT, CSV, JPEG, PNG, GIF</p>
+                <p>Maximum 10MB per file</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- File preview area -->
+        <div id="file-preview" class="mt-4 space-y-3 hidden">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-medium text-gray-700">Selected Files:</h4>
+            <button type="button" id="clear-files" class="text-sm text-red-600 hover:text-red-800 font-medium">Clear all</button>
+          </div>
+          <div id="file-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        </div>
+      </div>
+
       <div class="flex justify-end space-x-3 pt-4">
-        <%= link_to "Cancel", prompt_path(@prompt), class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium" %>
+        <%= link_to "Cancel", @prompt, class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium" %>
         <%= form.submit "Update Prompt", class: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
       </div>
     <% end %>

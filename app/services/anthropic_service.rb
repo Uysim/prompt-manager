@@ -19,17 +19,28 @@ class AnthropicService < LlmService
     @client = Anthropic::Client.new(api_key: api_key)
   end
 
-  def generate(prompt_content)
+  def generate(prompt_content, files = [])
     return { error: "API key not configured" } unless api_key_present?
 
+    # Prepare message content
+    content = [ { type: "text", text: prompt_content } ]
+
+    # Add files to content if provided
+    files.each do |file|
+      file_content = prepare_file_content(file)
+      content << file_content if file_content
+    end
+
     begin
+
+
       response = @client.messages.create(
         model: model,
         max_tokens: 4000,
         messages: [
           {
             role: "user",
-            content: prompt_content
+            content: content
           }
         ]
       )
@@ -46,6 +57,41 @@ class AnthropicService < LlmService
       }
     rescue => e
       { error: "Request failed: #{e.message}" }
+    end
+  end
+
+  private
+
+  def prepare_file_content(file)
+    case file.content_type
+    when /^image\//
+      # For images, we need to encode as base64
+      {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: file.content_type,
+          data: Base64.strict_encode64(file.download)
+        }
+      }
+    when /^text\//
+      # For text files, we can include the content directly
+      {
+        type: "text",
+        text: file.download.force_encoding("UTF-8")
+      }
+    when "application/pdf"
+      # For PDFs, use the document content type with base64 encoding
+      {
+        type: "document",
+        source: {
+          type: "base64",
+          media_type: "application/pdf",
+          data: Base64.strict_encode64(file.download)
+        }
+      }
+    else
+      raise "Unsupported file type: #{file.content_type} for file: #{file.filename}"
     end
   end
 end
