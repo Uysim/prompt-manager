@@ -17,7 +17,7 @@ class GenerationService
     if @use_sequential_thinking
       # Use sequential thinking for complex problems
       thinking_service = SequentialThinkingService.new(model: @model)
-      result = thinking_service.think_through_problem(processed_content)
+      result = thinking_service.think_through_problem(processed_content, @prompt.files)
 
       if result[:success]
         # Save the generation with thinking process
@@ -38,9 +38,9 @@ class GenerationService
         { success: false, error: result[:error] }
       end
     else
-      # Standard generation
+      # Standard generation with files
       llm_service = AnthropicService.new(model: @model)
-      result = llm_service.generate(processed_content)
+      result = llm_service.generate(processed_content, @prompt.files)
 
       if result[:success]
         # Save the generation

@@ -32,6 +32,9 @@ gem "tailwindcss-rails"
 # Anthropic Ruby SDK
 gem "anthropic", "~> 1.1"
 
+# Active Storage validations
+gem "active_storage_validations"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

@@ -6,7 +6,7 @@ class LlmService
     @model = model
   end
 
-  def generate(prompt_content)
+  def generate(prompt_content, files = [])
     raise NotImplementedError, "Subclasses must implement generate method"
   end
 

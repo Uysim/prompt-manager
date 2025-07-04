@@ -1,5 +1,5 @@
 class PromptsController < ApplicationController
-  before_action :set_prompt, only: [ :show, :edit, :update, :destroy, :generate, :generations ]
+  before_action :set_prompt, only: [ :show, :edit, :update, :destroy, :generate, :generations, :remove_file ]
 
   def index
     @prompts = Prompt.order(created_at: :desc)
@@ -59,6 +59,14 @@ class PromptsController < ApplicationController
     @generations = @prompt.generations.order(created_at: :desc)
   end
 
+  def remove_file
+    file = @prompt.files.find(params[:file_id])
+    file.purge
+    redirect_to edit_prompt_path(@prompt), notice: "File removed successfully."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to edit_prompt_path(@prompt), alert: "File not found."
+  end
+
   private
 
   def set_prompt
@@ -66,6 +74,6 @@ class PromptsController < ApplicationController
   end
 
   def prompt_params
-    params.require(:prompt).permit(:title, :content, :description)
+    params.require(:prompt).permit(:title, :content, :description, files: [])
   end
 end

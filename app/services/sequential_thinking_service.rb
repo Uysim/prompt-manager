@@ -4,7 +4,7 @@ class SequentialThinkingService
     @anthropic_service = AnthropicService.new(model: model)
   end
 
-  def think_through_problem(problem_description, max_thoughts = 5)
+  def think_through_problem(problem_description, files = [], max_thoughts = 5)
     thoughts = []
     current_thought = 1
     total_thoughts = max_thoughts
@@ -13,8 +13,8 @@ class SequentialThinkingService
       # Build the thinking prompt
       thinking_prompt = build_thinking_prompt(problem_description, thoughts, current_thought, total_thoughts)
 
-      # Generate the next thought
-      result = @anthropic_service.generate(thinking_prompt)
+      # Generate the next thought with files
+      result = @anthropic_service.generate(thinking_prompt, files)
 
       if result[:success]
         thought_content = result[:text]
@@ -35,7 +35,7 @@ class SequentialThinkingService
     end
 
     # Generate final answer directly from thinking process
-    final_answer = generate_final_answer(problem_description, thoughts)
+    final_answer = generate_final_answer(problem_description, thoughts, files)
 
     if final_answer[:success]
       {
@@ -84,7 +84,7 @@ class SequentialThinkingService
     !has_conclusion && current_thought < total_thoughts
   end
 
-  def generate_final_answer(problem_description, thoughts)
+  def generate_final_answer(problem_description, thoughts, files)
     thinking_summary = thoughts.map { |t| "Step #{t[:number]}: #{t[:content]}" }.join("\n")
 
     final_prompt = <<~PROMPT
@@ -105,6 +105,6 @@ class SequentialThinkingService
       Final Answer:
     PROMPT
 
-    @anthropic_service.generate(final_prompt)
+    @anthropic_service.generate(final_prompt, files)
   end
 end
