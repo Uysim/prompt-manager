@@ -97,6 +97,31 @@ bin/rails server
 bin/rails tailwindcss:watch
 ```
 
+### Background Jobs
+
+This application uses different background job systems for different environments:
+
+**Development**: Uses Sucker Punch (in-process, no additional setup required)
+- Jobs run in the same process as the web server
+- No Redis or additional services needed
+- Perfect for development and testing
+
+**Production**: Uses Sidekiq (requires Redis)
+- Jobs run in separate worker processes
+- Requires Redis server running
+- Better for production workloads
+
+To run in production:
+```bash
+# Start Redis
+redis-server
+
+# Start Sidekiq workers
+bundle exec sidekiq
+
+# Start Rails server
+rails server
+```
 
 ## Key Models
 

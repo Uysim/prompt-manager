@@ -6,30 +6,37 @@ class GenerationsController < ApplicationController
   end
 
   def show
+    # Subscribe to updates for this generation
+    @generation_id = @generation.id
   end
 
   def create
     @prompt = Prompt.find(params[:prompt_id])
     use_sequential_thinking = params[:use_sequential_thinking] == "true"
 
-    service = GenerationService.new(
-      @prompt,
-      params[:input_variables] || {},
-      params[:model],
-      use_sequential_thinking
+    # Validate input variables first
+    missing_vars = @prompt.missing_variables(params[:input_variables] || {})
+    if missing_vars.any?
+      flash[:error] = "Missing required variables: #{missing_vars.join(', ')}"
+      render "prompts/show", status: :unprocessable_entity
+      return
+    end
+
+    # Create generation with pending status
+    @generation = @prompt.generations.create!(
+      input_data: params[:input_variables] || {},
+      llm_provider: "anthropic",
+      llm_model: params[:model] || "claude-sonnet-4-20250514",
+      status: "pending",
+      metadata: { use_sequential_thinking: use_sequential_thinking }
     )
 
-    result = service.call
+    # Enqueue background job
+    GenerationJob.perform_later(@generation.id)
 
-    if result[:success]
-      @generation = result[:generation]
-      @thinking_process = result[:thinking_process] if result[:thinking_process]
-
-      redirect_to prompt_generation_path(@prompt, @generation), notice: "Text generated successfully!"
-    else
-      flash[:error] = result[:error]
-      render "prompts/show", status: :unprocessable_entity
-    end
+    # Redirect to show page where user can watch progress
+    redirect_to prompt_generation_path(@prompt, @generation),
+                notice: "Generation started! You'll see updates in real-time."
   end
 
   def destroy

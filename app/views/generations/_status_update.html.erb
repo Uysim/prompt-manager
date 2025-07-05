@@ -1,0 +1,32 @@
+<div class="bg-white shadow rounded-lg p-6">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <% case status %>
+      <% when "pending" %>
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span class="text-lg font-medium text-gray-900">Queued for generation...</span>
+      <% when "generating" %>
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span class="text-lg font-medium text-gray-900"><%= local_assigns[:message] || "Generating..." %></span>
+      <% when "completed" %>
+        <div class="rounded-full h-6 w-6 bg-green-500 flex items-center justify-center">
+          <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <span class="text-lg font-medium text-green-900">Generation completed!</span>
+      <% when "error" %>
+        <div class="rounded-full h-6 w-6 bg-red-500 flex items-center justify-center">
+          <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <span class="text-lg font-medium text-red-900">Generation failed</span>
+      <% end %>
+    </div>
+    
+    <div class="text-sm text-gray-500">
+      <%= generation.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+    </div>
+  </div>
+</div> 

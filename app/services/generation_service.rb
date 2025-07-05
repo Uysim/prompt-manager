@@ -1,41 +1,39 @@
 class GenerationService
-  def initialize(prompt, input_variables, model = "claude-sonnet-4-20250514", use_sequential_thinking = false)
-    @prompt = prompt
-    @input_variables = input_variables
-    @model = model
-    @use_sequential_thinking = use_sequential_thinking
+  def initialize(generation)
+    @generation = generation
+    @prompt = generation.prompt
+    @input_variables = generation.input_data
+    @model = generation.llm_model
+    @use_sequential_thinking = generation.metadata&.dig("use_sequential_thinking") || false
   end
 
   def call
     # Validate input variables
     missing_vars = @prompt.missing_variables(@input_variables)
     if missing_vars.any?
-      return { success: false, error: "Missing required variables: #{missing_vars.join(', ')}" }
+      error_msg = "Missing required variables: #{missing_vars.join(', ')}"
+      @generation.fail_generation!(error_msg)
+      broadcast_generation_error(error_msg)
+      return { success: false, error: error_msg }
     end
 
     # Process the prompt with variables
     processed_content = @prompt.process_content(@input_variables)
 
-    # Create generation with pending status
-    generation = @prompt.generations.create!(
-      input_data: @input_variables,
-      llm_provider: "anthropic",
-      llm_model: @model,
-      status: "pending"
-    )
-
     begin
       # Start generation
-      generation.start_generation!
+      @generation.start_generation!
+      broadcast_generation_update("Generation started...")
 
       if @use_sequential_thinking
         # Use sequential thinking for complex problems
+        broadcast_generation_update("Using sequential thinking approach...")
         thinking_service = SequentialThinkingService.new(model: @model)
         result = thinking_service.think_through_problem(processed_content, @prompt.files)
 
         if result[:success]
           # Complete the generation with thinking process
-          generation.complete_generation!(
+          @generation.complete_generation!(
             result[:final_text],
             {
               thinking_process: result[:thoughts],
@@ -44,28 +42,81 @@ class GenerationService
             }
           )
 
-          { success: true, generation: generation, thinking_process: result[:thoughts] }
+          broadcast_generation_complete(result[:thoughts])
+          { success: true, generation: @generation, thinking_process: result[:thoughts] }
         else
-          generation.fail_generation!(result[:error])
-          { success: false, error: result[:error], generation: generation }
+          @generation.fail_generation!(result[:error])
+          broadcast_generation_error(result[:error])
+          { success: false, error: result[:error], generation: @generation }
         end
       else
         # Standard generation with files
+        broadcast_generation_update("Processing with AI...")
         llm_service = AnthropicService.new(model: @model)
         result = llm_service.generate(processed_content, @prompt.files)
 
         if result[:success]
-          generation.complete_generation!(result[:text])
-          { success: true, generation: generation }
+          @generation.complete_generation!(result[:text])
+          broadcast_generation_complete
+          { success: true, generation: @generation }
         else
-          generation.fail_generation!(result[:error])
-          { success: false, error: result[:error], generation: generation }
+          @generation.fail_generation!(result[:error])
+          broadcast_generation_error(result[:error])
+          { success: false, error: result[:error], generation: @generation }
         end
       end
     rescue => e
       # Handle any unexpected errors
-      generation.fail_generation!(e.message)
-      { success: false, error: e.message, generation: generation }
+      @generation.fail_generation!(e.message)
+      broadcast_generation_error(e.message)
+      { success: false, error: e.message, generation: @generation }
     end
+  end
+
+  private
+
+  def broadcast_generation_update(message)
+    Turbo::StreamsChannel.broadcast_update_to(
+      "generation_#{@generation.id}",
+      target: "generation_status",
+      partial: "generations/status_update",
+      locals: {
+        generation: @generation,
+        message: message,
+        status: @generation.status
+      }
+    )
+  end
+
+  def broadcast_generation_complete(thinking_process = nil)
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "generation_#{@generation.id}",
+      target: "generation_content",
+      partial: "generations/result",
+      locals: {
+        generation: @generation,
+        thinking_process: thinking_process
+      }
+    )
+
+    # Also broadcast to the prompt's generations list
+    Turbo::StreamsChannel.broadcast_append_to(
+      "prompt_#{@generation.prompt_id}_generations",
+      target: "recent_generations",
+      partial: "generations/generation_item",
+      locals: { generation: @generation }
+    )
+  end
+
+  def broadcast_generation_error(error_message)
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "generation_#{@generation.id}",
+      target: "generation_content",
+      partial: "generations/error",
+      locals: {
+        generation: @generation,
+        error_message: error_message
+      }
+    )
   end
 end
