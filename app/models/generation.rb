@@ -1,11 +1,42 @@
 class Generation < ApplicationRecord
   belongs_to :prompt
 
+  # State enum with string values for data consistency
+  enum status: {
+    pending: "pending",
+    generating: "generating",
+    completed: "completed",
+    error: "error"
+  }
+
+  # Validations
   validates :input_data, presence: true
-  validates :generated_text, presence: true
   validates :llm_provider, presence: true
   validates :llm_model, presence: true
+  validates :status, presence: true, inclusion: { in: statuses.keys }
 
+  # Only require generated_text when completed
+  validates :generated_text, presence: true, if: :completed?
+
+  # State transition methods
+  def start_generation!
+    update!(status: "generating")
+  end
+
+  def complete_generation!(text, metadata_updates = {})
+    update!(
+      status: "completed",
+      generated_text: text,
+      metadata: metadata.merge(metadata_updates)
+    )
+  end
+
+  def fail_generation!(error_message = nil)
+    update!(
+      status: "error",
+      metadata: metadata.merge(error: error_message)
+    )
+  end
 
   # Get processed prompt content for this generation
   def processed_prompt_content
@@ -17,8 +48,13 @@ class Generation < ApplicationRecord
     input_data.keys
   end
 
-  # Check if generation was successful (has content)
+  # Check if generation was successful (has content and completed)
   def successful?
-    generated_text.present?
+    completed? && generated_text.present?
+  end
+
+  # Get error message from metadata
+  def error_message
+    metadata["error"] if error?
   end
 end
