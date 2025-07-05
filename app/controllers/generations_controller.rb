@@ -31,8 +31,13 @@ class GenerationsController < ApplicationController
       metadata: { use_sequential_thinking: use_sequential_thinking }
     )
 
+    # Attach files if provided
+    if params[:files].present?
+      @generation.files.attach(params[:files])
+    end
+
     # Enqueue background job
-    GenerationJob.perform_later(@generation.id)
+    GenerationJob.perform_later(@generation)
 
     # Redirect to show page where user can watch progress
     redirect_to prompt_generation_path(@prompt, @generation),

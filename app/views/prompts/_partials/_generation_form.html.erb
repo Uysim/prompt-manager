@@ -3,7 +3,7 @@
   <h2 class="text-lg font-medium text-gray-900 mb-4">Generate Text</h2>
 
   <% variables = @prompt.extract_variables %>
-  <%= form_with url: prompt_generations_path(@prompt, @generation), method: :post, local: true, class: "space-y-4" do |form| %>
+  <%= form_with url: prompt_generations_path(@prompt, @generation), method: :post, local: true, class: "space-y-4", multipart: true, data: { controller: "file-upload" } do |form| %>
     <!-- Model Selection -->
     <div>
       <label for="model" class="block text-sm font-medium text-gray-700 mb-1">
@@ -31,6 +31,8 @@
     <p class="text-xs text-gray-500 -mt-2">
       Break down complex problems into step-by-step reasoning. Best for analysis, problem-solving, and debugging.
     </p>
+
+
     <% if variables.any? %>
       <% variables.each do |var| %>
         <div>
@@ -46,6 +48,49 @@
         </div>
       <% end %>
     <% end %>
+
+        <!-- File Upload Section -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Attach Files (Optional)</label>
+      <div class="text-sm text-gray-500 mb-3">
+        Supported formats: PDF, DOC, DOCX, TXT, CSV, JPEG, PNG, GIF (max 10MB each)
+      </div>
+      
+      <div class="relative">
+        <div class="mt-1 flex justify-center px-6 pt-6 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors duration-200 bg-gray-50 hover:bg-blue-50">
+          <div class="space-y-3 text-center">
+            <div class="flex justify-center">
+              <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div class="flex flex-col items-center space-y-2">
+              <label for="generation_files" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-3 py-1.5 border border-blue-300 hover:border-blue-400 transition-colors duration-200 text-sm">
+                <span>Choose files</span>
+                <%= form.file_field :files, multiple: true, 
+                    class: "sr-only",
+                    accept: ".pdf,.doc,.docx,.txt,.csv,.jpg,.jpeg,.png,.gif",
+                    data: { 
+                      action: "change->file-upload#handleFiles",
+                      "file-upload-target": "input"
+                    } %>
+              </label>
+              <p class="text-xs text-gray-600">or drag and drop files here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- File preview area -->
+      <div id="file-preview" class="mt-3 space-y-2 hidden">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-medium text-gray-700">Selected Files:</h4>
+          <button type="button" id="clear-files" class="text-sm text-red-600 hover:text-red-800 font-medium">Clear all</button>
+        </div>
+        <div id="file-list" class="space-y-2 max-h-32 overflow-y-auto"></div>
+      </div>
+    </div>
+
     
     <div class="pt-4">
       <%= form.submit "Generate", 

@@ -20,6 +20,9 @@ class GenerationService
     # Process the prompt with variables
     processed_content = @prompt.process_content(@input_variables)
 
+    # Combine prompt files and generation files
+    all_files = @prompt.files + @generation.files
+
     begin
       # Start generation
       @generation.start_generation!
@@ -29,7 +32,7 @@ class GenerationService
         # Use sequential thinking for complex problems
         broadcast_generation_update("Using sequential thinking approach...")
         thinking_service = SequentialThinkingService.new(model: @model)
-        result = thinking_service.think_through_problem(processed_content, @prompt.files)
+        result = thinking_service.think_through_problem(processed_content, all_files)
 
         if result[:success]
           # Complete the generation with thinking process
@@ -53,7 +56,7 @@ class GenerationService
         # Standard generation with files
         broadcast_generation_update("Processing with AI...")
         llm_service = AnthropicService.new(model: @model)
-        result = llm_service.generate(processed_content, @prompt.files)
+        result = llm_service.generate(processed_content, all_files)
 
         if result[:success]
           @generation.complete_generation!(result[:text])

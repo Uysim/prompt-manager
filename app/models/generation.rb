@@ -1,5 +1,6 @@
 class Generation < ApplicationRecord
   belongs_to :prompt
+  has_many_attached :files
 
   # State enum with string values for data consistency
   enum status: {
@@ -14,6 +15,8 @@ class Generation < ApplicationRecord
   validates :llm_provider, presence: true
   validates :llm_model, presence: true
   validates :status, presence: true, inclusion: { in: statuses.keys }
+  validates :files, content_type: { in: %w[text/plain text/csv application/pdf image/jpeg image/png image/gif application/msword application/vnd.openxmlformats-officedocument.wordprocessingml.document], message: "must be a valid file type" }
+  validates :files, size: { less_than: 10.megabytes, message: "must be less than 10MB" }
 
   # Only require generated_text when completed
   validates :generated_text, presence: true, if: :completed?
