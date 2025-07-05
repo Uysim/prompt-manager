@@ -14,6 +14,12 @@ class GenerationService
     # Process the prompt with variables
     processed_content = @prompt.process_content(@input_variables)
 
+    generation = @prompt.generations.new(
+      input_data: @input_variables,
+      llm_provider: "anthropic",
+      llm_model: @model
+    )
+
     if @use_sequential_thinking
       # Use sequential thinking for complex problems
       thinking_service = SequentialThinkingService.new(model: @model)
@@ -21,21 +27,22 @@ class GenerationService
 
       if result[:success]
         # Save the generation with thinking process
-        generation = @prompt.generations.create!(
-          input_data: @input_variables,
-          generated_text: result[:final_text],
-          llm_provider: "anthropic",
-          llm_model: @model,
-          metadata: {
-            thinking_process: result[:thoughts],
-            enhanced_prompt: result[:enhanced_prompt],
-            used_sequential_thinking: true
-          }
-        )
+        generation.generated_text = result[:final_text]
+        generation.metadata = {
+          thinking_process: result[:thoughts],
+          enhanced_prompt: result[:enhanced_prompt],
+          used_sequential_thinking: true
+        }
+
+        generation.save!
 
         { success: true, generation: generation, thinking_process: result[:thoughts] }
       else
-        { success: false, error: result[:error] }
+        {
+          success: false,
+          error: result[:error],
+          generation: generation
+        }
       end
     else
       # Standard generation with files
@@ -44,16 +51,16 @@ class GenerationService
 
       if result[:success]
         # Save the generation
-        generation = @prompt.generations.create!(
-          input_data: @input_variables,
-          generated_text: result[:text],
-          llm_provider: "anthropic",
-          llm_model: @model
-        )
+        generation.generated_text = result[:text]
+        generation.save!
 
         { success: true, generation: generation }
       else
-        { success: false, error: result[:error] }
+        {
+          success: false,
+          error: result[:error],
+          generation: generation
+        }
       end
     end
   end

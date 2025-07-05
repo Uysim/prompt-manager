@@ -14,8 +14,8 @@ class GenerationsController < ApplicationController
 
     service = GenerationService.new(
       @prompt,
-      generation_params[:input_variables],
-      generation_params[:model] || AnthropicService.default_model,
+      params[:input_variables] || {},
+      params[:model],
       use_sequential_thinking
     )
 
@@ -25,19 +25,10 @@ class GenerationsController < ApplicationController
       @generation = result[:generation]
       @thinking_process = result[:thinking_process] if result[:thinking_process]
 
-      respond_to do |format|
-        format.turbo_stream {
-          render turbo_stream: turbo_stream.replace(
-            "generation_result",
-            partial: "generations/result",
-            locals: { generation: @generation, thinking_process: @thinking_process }
-          )
-        }
-        format.html { redirect_to prompt_generation_path(@prompt, @generation) }
-      end
+      redirect_to prompt_generation_path(@prompt, @generation), notice: "Text generated successfully!"
     else
       flash[:error] = result[:error]
-      redirect_to prompt_path(@prompt)
+      render "prompts/show", status: :unprocessable_entity
     end
   end
 

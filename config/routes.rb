@@ -12,7 +12,6 @@ Rails.application.routes.draw do
   # Prompt management routes
   resources :prompts do
     member do
-      post :generate
       delete :remove_file
       get :generations
     end
