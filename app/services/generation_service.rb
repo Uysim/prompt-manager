@@ -8,14 +8,7 @@ class GenerationService
   end
 
   def call
-    # Validate input variables
-    missing_vars = @prompt.missing_variables(@input_variables)
-    if missing_vars.any?
-      error_msg = "Missing required variables: #{missing_vars.join(', ')}"
-      @generation.fail_generation!(error_msg)
-      broadcast_generation_error(error_msg)
-      return { success: false, error: error_msg }
-    end
+    validate_input_variables!
 
     # Process the prompt with variables
     processed_content = @prompt.process_content(@input_variables)
@@ -29,44 +22,9 @@ class GenerationService
       broadcast_generation_update("Generation started...")
 
       if @use_sequential_thinking
-        # Use sequential thinking for complex problems
-        broadcast_generation_update("Using sequential thinking approach...")
-        thinking_service = SequentialThinkingService.new(model: @model)
-        result = thinking_service.think_through_problem(processed_content, all_files)
-
-        if result[:success]
-          # Complete the generation with thinking process
-          @generation.complete_generation!(
-            result[:final_text],
-            {
-              thinking_process: result[:thoughts],
-              enhanced_prompt: result[:enhanced_prompt],
-              used_sequential_thinking: true
-            }
-          )
-
-          broadcast_generation_complete(result[:thoughts])
-          { success: true, generation: @generation, thinking_process: result[:thoughts] }
-        else
-          @generation.fail_generation!(result[:error])
-          broadcast_generation_error(result[:error])
-          { success: false, error: result[:error], generation: @generation }
-        end
+        generate_with_sequential_thinking(processed_content, all_files)
       else
-        # Standard generation with files
-        broadcast_generation_update("Processing with AI...")
-        llm_service = AnthropicService.new(model: @model)
-        result = llm_service.generate(processed_content, all_files)
-
-        if result[:success]
-          @generation.complete_generation!(result[:text])
-          broadcast_generation_complete
-          { success: true, generation: @generation }
-        else
-          @generation.fail_generation!(result[:error])
-          broadcast_generation_error(result[:error])
-          { success: false, error: result[:error], generation: @generation }
-        end
+        generate_with_llm(processed_content, all_files)
       end
     rescue => e
       # Handle any unexpected errors
@@ -77,6 +35,59 @@ class GenerationService
   end
 
   private
+
+  def validate_input_variables!
+    missing_vars = @prompt.missing_variables(@input_variables)
+    if missing_vars.any?
+      error_msg = "Missing required variables: #{missing_vars.join(', ')}"
+      @generation.fail_generation!(error_msg)
+      broadcast_generation_error(error_msg)
+      raise error_msg
+    end
+  end
+
+  def generate_with_sequential_thinking(processed_content, all_files)
+    # Use sequential thinking for complex problems
+    broadcast_generation_update("Using sequential thinking approach...")
+    thinking_service = SequentialThinkingService.new(model: @model)
+    result = thinking_service.think_through_problem(processed_content, all_files)
+
+    if result[:success]
+      # Complete the generation with thinking process
+      @generation.complete_generation!(
+        result[:final_text],
+        {
+          thinking_process: result[:thoughts],
+          enhanced_prompt: result[:enhanced_prompt],
+          used_sequential_thinking: true
+        }
+      )
+
+      broadcast_generation_complete(result[:thoughts])
+      { success: true, generation: @generation, thinking_process: result[:thoughts] }
+    else
+      @generation.fail_generation!(result[:error])
+      broadcast_generation_error(result[:error])
+      { success: false, error: result[:error], generation: @generation }
+    end
+  end
+
+  def generate_with_llm(processed_content, all_files)
+    # Standard generation with files
+    broadcast_generation_update("Processing with AI...")
+    llm_service = AnthropicService.new(model: @model)
+    result = llm_service.generate(processed_content, all_files)
+
+    if result[:success]
+      @generation.complete_generation!(result[:text])
+      broadcast_generation_complete
+      { success: true, generation: @generation }
+    else
+      @generation.fail_generation!(result[:error])
+      broadcast_generation_error(result[:error])
+      { success: false, error: result[:error], generation: @generation }
+    end
+  end
 
   def broadcast_generation_update(message)
     Turbo::StreamsChannel.broadcast_update_to(
