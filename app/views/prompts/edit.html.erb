@@ -93,6 +93,7 @@
                         "file-upload-target": "input"
                       } %>
                 </label>
+                <%= form.hidden_field :files, multiple: true, value: @prompt.files.map(&:signed_id).reject(&:blank?) if @prompt.files.attached? %>
                 <p class="text-sm text-gray-600">or drag and drop files here</p>
               </div>
               <div class="text-xs text-gray-500 space-y-1">
