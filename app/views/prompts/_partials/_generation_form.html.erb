@@ -92,9 +92,13 @@
     </div>
 
     
-    <div class="pt-4">
+    <div class="pt-4 flex space-x-3">
       <%= form.submit "Generate", 
-          class: "w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+          class: "flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
+      
+      <%= form.submit "Preview Prompt", 
+          name: "preview_only",
+          class: "flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium" %>
     </div>
   <% end %>
 </div> 

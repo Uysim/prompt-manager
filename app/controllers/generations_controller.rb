@@ -13,6 +13,7 @@ class GenerationsController < ApplicationController
   def create
     @prompt = Prompt.find(params[:prompt_id])
     use_sequential_thinking = params[:use_sequential_thinking] == "true"
+    preview_only = params[:preview_only].present?
 
     # Validate input variables first
     missing_vars = @prompt.missing_variables(params[:input_variables] || {})
@@ -22,13 +23,15 @@ class GenerationsController < ApplicationController
       return
     end
 
-    # Create generation with pending status
     @generation = @prompt.generations.create!(
       input_data: params[:input_variables] || {},
       llm_provider: "anthropic",
       llm_model: params[:model] || "claude-sonnet-4-20250514",
       status: "pending",
-      metadata: { use_sequential_thinking: use_sequential_thinking }
+      metadata: {
+        use_sequential_thinking: use_sequential_thinking,
+        preview_only: preview_only
+      }
     )
 
     # Attach files if provided
@@ -36,10 +39,8 @@ class GenerationsController < ApplicationController
       @generation.files.attach(params[:files])
     end
 
-    # Enqueue background job
     GenerationJob.perform_later(@generation)
 
-    # Redirect to show page where user can watch progress
     redirect_to prompt_generation_path(@prompt, @generation),
                 notice: "Generation started! You'll see updates in real-time."
   end

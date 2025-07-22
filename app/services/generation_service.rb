@@ -4,7 +4,6 @@ class GenerationService
     @prompt = generation.prompt
     @input_variables = generation.input_data
     @model = generation.llm_model
-    @use_sequential_thinking = generation.metadata&.dig("use_sequential_thinking") || false
   end
 
   def call
@@ -12,6 +11,8 @@ class GenerationService
 
     # Process the prompt with variables
     processed_content = @prompt.process_content(@input_variables)
+
+    return generate_preview(processed_content) if preview_only?
 
     # Combine prompt files and generation files
     all_files = @prompt.files + @generation.files
@@ -21,11 +22,9 @@ class GenerationService
       @generation.start_generation!
       broadcast_generation_update("Generation started...")
 
-      if @use_sequential_thinking
-        generate_with_sequential_thinking(processed_content, all_files)
-      else
-        generate_with_llm(processed_content, all_files)
-      end
+      return generate_with_sequential_thinking(processed_content, all_files) if use_sequential_thinking?
+
+      generate_with_llm(processed_content, all_files)
     rescue => e
       # Handle any unexpected errors
       @generation.fail_generation!(e.message)
@@ -35,6 +34,21 @@ class GenerationService
   end
 
   private
+
+  def use_sequential_thinking?
+    @generation.metadata&.dig("use_sequential_thinking") || false
+  end
+
+  def preview_only?
+    @generation.metadata&.dig("preview_only") || false
+  end
+
+  def generate_preview(processed_content)
+    @generation.update!(generated_prompt: processed_content)
+    @generation.complete_generation!("This is a preview of the prompt with the variables filled in.")
+    broadcast_generation_complete
+    { success: true, generation: @generation }
+  end
 
   def validate_input_variables!
     missing_vars = @prompt.missing_variables(@input_variables)

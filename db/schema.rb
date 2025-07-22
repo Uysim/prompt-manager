@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_05_151836) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_22_202514) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -53,6 +53,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_05_151836) do
     t.datetime "updated_at", null: false
     t.jsonb "metadata", default: {}
     t.string "status", default: "pending", null: false
+    t.text "generated_prompt"
     t.index ["created_at"], name: "index_generations_on_created_at"
     t.index ["metadata"], name: "index_generations_on_metadata", using: :gin
     t.index ["prompt_id", "created_at"], name: "index_generations_on_prompt_id_and_created_at"
