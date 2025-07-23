@@ -46,37 +46,7 @@
       </button>
     </div>
   </div>
-
-  <!-- Input Variables -->
-  <div class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Input Variables</h2>
-    
-    <% if generation.input_data.any? %>
-      <div class="space-y-3">
-        <% generation.input_data.each do |key, value| %>
-          <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-            <span class="text-sm font-medium text-gray-700">{{<%= key %>}}</span>
-            <span class="text-sm text-gray-600"><%= value %></span>
-          </div>
-        <% end %>
-      </div>
-    <% else %>
-      <p class="text-sm text-gray-500">No variables were used for this generation.</p>
-    <% end %>
-    
-    <div class="mt-6 p-4 bg-blue-50 rounded-md">
-      <h3 class="text-sm font-medium text-blue-900 mb-2">Generation Details</h3>
-      <div class="space-y-1 text-sm text-blue-800">
-        <% unless generation.metadata&.dig('preview_only') %>
-          <div><strong>Provider:</strong> <%= generation.llm_provider.humanize %></div>
-          <div><strong>Model:</strong> <%= model_display_name(generation.llm_model) %></div>
-        <% else %>
-          <div><strong>Type:</strong> Prompt Preview</div>
-          <div><strong>Status:</strong> Ready to copy</div>
-        <% end %>
-      </div>
-    </div>
-  </div>
+  <%= render 'generations/variables', generation: generation %>
 </div>
 
 <!-- Thinking Process -->
