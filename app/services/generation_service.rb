@@ -20,11 +20,36 @@ class GenerationService
     begin
       # Start generation
       @generation.start_generation!
-      broadcast_generation_update("Generation started...")
+      if use_sequential_thinking?
+        broadcast_generation_update("Using sequential thinking approach...")
+      else
+        broadcast_generation_update("Processing with AI...")
+      end
 
-      return generate_with_sequential_thinking(processed_content, all_files) if use_sequential_thinking?
+      result = Intelligent.generate(
+        llm_model: @model,
+        variables: @input_variables,
+        prompt: processed_content,
+        files: all_files,
+        use_sequential_thinking: use_sequential_thinking?
+      )
 
-      generate_with_llm(processed_content, all_files)
+      if result[:success]
+        @generation.complete_generation!(
+          result[:generated_text],
+          {
+            thinking_process: result[:thoughts],
+            used_sequential_thinking: use_sequential_thinking?
+          }
+        )
+        broadcast_generation_complete
+        { success: true, generation: @generation }
+      else
+        @generation.fail_generation!(result[:error])
+        broadcast_generation_error(result[:error])
+        { success: false, error: result[:error], generation: @generation }
+      end
+
     rescue => e
       # Handle any unexpected errors
       @generation.fail_generation!(e.message)
@@ -57,49 +82,6 @@ class GenerationService
       @generation.fail_generation!(error_msg)
       broadcast_generation_error(error_msg)
       raise error_msg
-    end
-  end
-
-  def generate_with_sequential_thinking(processed_content, all_files)
-    # Use sequential thinking for complex problems
-    broadcast_generation_update("Using sequential thinking approach...")
-    thinking_service = SequentialThinkingService.new(model: @model)
-    result = thinking_service.think_through_problem(processed_content, all_files)
-
-    if result[:success]
-      # Complete the generation with thinking process
-      @generation.complete_generation!(
-        result[:final_text],
-        {
-          thinking_process: result[:thoughts],
-          enhanced_prompt: result[:enhanced_prompt],
-          used_sequential_thinking: true
-        }
-      )
-
-      broadcast_generation_complete(result[:thoughts])
-      { success: true, generation: @generation, thinking_process: result[:thoughts] }
-    else
-      @generation.fail_generation!(result[:error])
-      broadcast_generation_error(result[:error])
-      { success: false, error: result[:error], generation: @generation }
-    end
-  end
-
-  def generate_with_llm(processed_content, all_files)
-    # Standard generation with files
-    broadcast_generation_update("Processing with AI...")
-    llm_service = AnthropicService.new(model: @model)
-    result = llm_service.generate(processed_content, all_files)
-
-    if result[:success]
-      @generation.complete_generation!(result[:text])
-      broadcast_generation_complete
-      { success: true, generation: @generation }
-    else
-      @generation.fail_generation!(result[:error])
-      broadcast_generation_error(result[:error])
-      { success: false, error: result[:error], generation: @generation }
     end
   end
 

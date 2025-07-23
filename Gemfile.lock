@@ -134,6 +134,9 @@ GEM
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
+    intelligent (0.0.1)
+      anthropic (>= 1.1)
+      pry (~> 0.14.1)
     io-console (0.8.0)
     irb (1.15.2)
       pp (>= 0.6.0)
@@ -185,7 +188,7 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.4.0)
-    pry (0.15.2)
+    pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
     psych (5.2.6)
@@ -335,6 +338,7 @@ DEPENDENCIES
   dotenv-rails
   error_highlight (>= 0.4.0)
   importmap-rails
+  intelligent (~> 0.0.1)
   jbuilder
   pg (~> 1.5.9)
   pry
